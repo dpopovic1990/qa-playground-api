@@ -1,3 +1,5 @@
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./config/swagger');
 
 const express = require('express');
 
@@ -15,6 +17,8 @@ app.use(express.json());
 // Register API routes
 app.use('/health', healthRoutes);
 app.use('/api/v1/users', usersRoutes);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Handle unknown routes
 app.use(notFound);
