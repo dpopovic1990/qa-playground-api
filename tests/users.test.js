@@ -72,7 +72,6 @@ test('POST /api/v1/users should return 400 for missing fields', async () => {
     assert.equal(response.status, 400);
 });
 
-
 test('POST /api/v1/users should return 409 for duplicate email', async () => {
     const email = `duplicate-${crypto.randomUUID()}@example.com`;
 
@@ -110,13 +109,21 @@ test('POST /api/v1/users should return 409 for duplicate email', async () => {
     }
 });
 
-
-test('GET /api/v1/users should return users collection', async () => {
-    const response = await request(app).get('/api/v1/users');
+test('GET /api/v1/users should return paginated users collection', async () => {
+    const response = await request(app)
+        .get('/api/v1/users');
 
     assert.equal(response.status, 200);
     assert.ok(Array.isArray(response.body.data));
-    assert.equal(response.body.count, response.body.data.length);
+
+    assert.equal(response.body.pagination.page, 1);
+    assert.equal(response.body.pagination.limit, 10);
+
+    assert.ok(
+        Number.isInteger(response.body.pagination.total)
+    );
+
+    assert.ok(response.body.data.length <= 10);
 });
 
 test('GET /api/v1/users/:id should return existing user', async () => {
@@ -162,6 +169,63 @@ test('GET /api/v1/users/:id should return 400 for invalid ID', async () => {
     assert.equal(response.body.error, 'Validation Error');
 });
 
+test('GET /api/v1/users should reject invalid pagination', async () => {
+    const response = await request(app)
+        .get('/api/v1/users?page=0&limit=1000');
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.error, 'Validation Error');
+});
+
+test('GET /api/v1/users should reject invalid sorting', async () => {
+    const response = await request(app)
+        .get('/api/v1/users?sortBy=invalid_column');
+
+    assert.equal(response.status, 400);
+});
+
+test('GET /api/v1/users should support name filtering', async () => {
+    const email = `filter-${crypto.randomUUID()}@example.com`;
+    const uniqueName = `Filter${crypto.randomUUID().replace(/-/g, '')}`;
+
+    try {
+        const created = await request(app)
+            .post('/api/v1/users')
+            .send({
+                name: uniqueName,
+                email
+            });
+
+        assert.equal(created.status, 201);
+
+        const response = await request(app)
+            .get(`/api/v1/users?name=${uniqueName}`);
+
+        assert.equal(response.status, 200);
+        assert.equal(response.body.pagination.total, 1);
+        assert.equal(response.body.data[0].email, email);
+    } finally {
+        await pool.query(
+            'DELETE FROM users WHERE email = $1',
+            [email]
+        );
+    }
+});
+
+test('GET /api/v1/users should support sorting', async () => {
+    const response = await request(app)
+        .get('/api/v1/users?sortBy=name&order=desc');
+
+    assert.equal(response.status, 200);
+
+    const names = response.body.data.map(user => user.name);
+
+    const sortedNames = [...names].sort((a, b) =>
+        b.localeCompare(a)
+    );
+
+    assert.deepEqual(names, sortedNames);
+});
 
 after(async () => {
     await pool.end();
