@@ -24,9 +24,10 @@ async function createUser(userData) {
     }
 }
 
-async function getAllUsers() {
-    return usersRepository.getAllUsers();
+async function getAllUsers(options) {
+    return usersRepository.getAllUsers(options);
 }
+
 
 async function getUserById(id) {
     const user = await usersRepository.getUserById(id);
