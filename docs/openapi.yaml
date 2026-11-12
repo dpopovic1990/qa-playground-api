@@ -1,0 +1,109 @@
+
+openapi: 3.0.3
+
+info:
+  title: QA Playground API
+  version: 1.0.0
+  description: |
+    Open-source REST API playground for QA engineers,
+    test automation practice and backend learning.
+
+servers:
+  - url: http://localhost:3000
+    description: Local development environment
+
+tags:
+  - name: Health
+  - name: Users
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Check API health
+      responses:
+        '200':
+          description: API is running
+
+  /api/v1/users:
+    get:
+      tags: [Users]
+      summary: Get paginated users
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [id, name, created_at]
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Paginated users collection
+        '400':
+          description: Invalid query parameters
+
+    post:
+      tags: [Users]
+      summary: Create a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+      responses:
+        '201':
+          description: User created successfully
+        '400':
+          description: Validation error
+        '409':
+          description: User already exists
+
+  /api/v1/users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: User found
+        '400':
+          description: Invalid user ID
+        '404':
+          description: User not found

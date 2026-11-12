@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "node --test"
+    "test": "node --env-file=.env.test --test",
+    "db:migrate": "node scripts/migrate.js",
+    "db:migrate:test": "node --env-file=.env.test scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "db:seed:test": "node --env-file=.env.test scripts/seed.js"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +19,9 @@
   "dependencies": {
     "dotenv": "^18.0.10",
     "express": "^5.3.0",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",
