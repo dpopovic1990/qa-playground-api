@@ -1,9 +1,7 @@
-
 node_modules
 npm-debug.log
 .env
 .env.*
 .git
 coverage
-tests
 README.md
