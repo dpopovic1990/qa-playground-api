@@ -1,27 +1,23 @@
 
 const transactionsService = require('../services/transactions.service');
+const { validateTransaction } = require('../validators/transactions.validator');
 
 async function createTransaction(req, res, next) {
     try {
-        const { accountId, type, amount } = req.body ?? {};
+        const data = req.body ?? {};
+        const errors = validateTransaction(data);
 
-        if (
-            !/^[1-9]\d*$/.test(String(accountId)) ||
-            !['DEPOSIT', 'WITHDRAWAL'].includes(type) ||
-            typeof amount !== 'string' ||
-            !/^\d+\.\d{2}$/.test(amount) ||
-            BigInt(amount.replace('.', '')) <= 0n
-        ) {
+        if (errors.length > 0) {
             return res.status(400).json({
                 error: 'Validation Error',
-                message: 'Invalid transaction data.'
+                details: errors
             });
         }
 
         const transaction = await transactionsService.processTransaction({
-            accountId: String(accountId),
-            type,
-            amount
+            accountId: String(data.accountId),
+            type: data.type,
+            amount: data.amount
         });
 
         return res.status(201).json(transaction);

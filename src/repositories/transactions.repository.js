@@ -34,6 +34,12 @@ async function processTransaction({ accountId, type, amount }) {
             ? currentBalance + transactionAmount
             : currentBalance - transactionAmount;
 
+        if (newBalance > 999999999999999n) {
+            const error = new Error('Account balance limit exceeded.');
+            error.statusCode = 409;
+            throw error;
+        }
+
         const formattedBalance = [
             newBalance / 100n,
             (newBalance % 100n).toString().padStart(2, '0')

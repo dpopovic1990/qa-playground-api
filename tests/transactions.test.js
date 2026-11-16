@@ -178,6 +178,127 @@ test('Concurrent withdrawals should not overdraw account', async () => {
     }
 });
 
+test('POST /api/v1/transactions should reject amount exceeding database precision', async () => {
+    const response = await request(app)
+        .post('/api/v1/transactions')
+        .send({
+            accountId,
+            type: 'DEPOSIT',
+            amount: '10000000000000.00'
+        });
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.error, 'Validation Error');
+});
+
+test('POST /api/v1/transactions should reject accountId outside BIGINT range', async () => {
+    const response = await request(app)
+        .post('/api/v1/transactions')
+        .send({
+            accountId: '9223372036854775808',
+            type: 'DEPOSIT',
+            amount: '10.00'
+        });
+
+    assert.equal(response.status, 400);
+});
+
+test('POST /api/v1/transactions should reject zero amount', async () => {
+    const response = await request(app)
+        .post('/api/v1/transactions')
+        .send({
+            accountId,
+            type: 'DEPOSIT',
+            amount: '0.00'
+        });
+
+    assert.equal(response.status, 400);
+});
+
+test('Concurrent deposits should preserve account balance integrity', async () => {
+    const email = `deposits-${crypto.randomUUID()}@example.com`;
+
+    let testUserId;
+    let testAccountId;
+
+    try {
+        // Create a dedicated user
+        const userResponse = await request(app)
+            .post('/api/v1/users')
+            .send({
+                name: 'Concurrent Deposits User',
+                email
+            });
+
+        assert.equal(userResponse.status, 201);
+        testUserId = userResponse.body.id;
+
+        // Create a dedicated account
+        const accountResponse = await request(app)
+            .post('/api/v1/accounts')
+            .send({ userId: testUserId });
+
+        assert.equal(accountResponse.status, 201);
+        testAccountId = accountResponse.body.id;
+
+        // Send 20 deposit requests concurrently
+        const requests = Array.from({ length: 20 }, () =>
+            request(app)
+                .post('/api/v1/transactions')
+                .send({
+                    accountId: testAccountId,
+                    type: 'DEPOSIT',
+                    amount: '10.00'
+                })
+        );
+
+        const responses = await Promise.all(requests);
+
+        // All requests must succeed
+        for (const response of responses) {
+            assert.equal(response.status, 201);
+        }
+
+        // Verify final account balance
+        const balanceResult = await pool.query(
+            'SELECT balance FROM accounts WHERE id = $1',
+            [testAccountId]
+        );
+
+        assert.equal(balanceResult.rows[0].balance, '200.00');
+
+        // Verify all transactions were persisted
+        const transactionResult = await pool.query(
+            `SELECT COUNT(*) AS count
+       FROM transactions
+       WHERE account_id = $1 AND type = 'DEPOSIT'`,
+            [testAccountId]
+        );
+
+        assert.equal(Number(transactionResult.rows[0].count), 20);
+    } finally {
+        // Cleanup test data
+        if (testAccountId) {
+            await pool.query(
+                'DELETE FROM transactions WHERE account_id = $1',
+                [testAccountId]
+            );
+
+            await pool.query(
+                'DELETE FROM accounts WHERE id = $1',
+                [testAccountId]
+            );
+        }
+
+        if (testUserId) {
+            await pool.query(
+                'DELETE FROM users WHERE id = $1',
+                [testUserId]
+            );
+        }
+    }
+});
+
 after(async () => {
     if (accountId) {
         await pool.query(
