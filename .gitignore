@@ -3,5 +3,6 @@ node_modules/
 .env.*
 !.env.example
 !.env.test.example
+!.env.ci
 coverage/
 .DS_Store
