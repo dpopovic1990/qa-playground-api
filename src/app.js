@@ -6,6 +6,7 @@ const express = require('express');
 const healthRoutes = require('./routes/health.routes');
 const usersRoutes = require('./routes/users.routes');
 const accountsRoutes = require('./routes/accounts.routes');
+const transactionsRoutes = require('./routes/transactions.routes');
 
 const notFound = require('./middleware/notFound.middleware');
 const errorHandler = require('./middleware/error.middleware');
@@ -20,6 +21,8 @@ app.use('/health', healthRoutes);
 app.use('/api/v1/users', usersRoutes);
 
 app.use('/api/v1/accounts', accountsRoutes);
+
+app.use('/api/v1/transactions', transactionsRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
