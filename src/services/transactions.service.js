@@ -9,7 +9,12 @@ async function processTransaction(data) {
         if (error.statusCode === 404) {
             throw new AppError('Account not found.', 404);
         }
-
+        if (
+            error.statusCode === 409 &&
+            error.message === 'Account balance limit exceeded.'
+        ) {
+            throw new AppError('Account balance limit exceeded.', 409);
+        }
         if (error.statusCode === 409) {
             throw new AppError('Insufficient funds.', 409);
         }
