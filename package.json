@@ -7,6 +7,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "node --env-file=.env.test --test",
+    "test:docker": "node --test",
     "db:migrate": "node scripts/migrate.js",
     "db:migrate:test": "node --env-file=.env.test scripts/migrate.js",
     "db:seed": "node scripts/seed.js",

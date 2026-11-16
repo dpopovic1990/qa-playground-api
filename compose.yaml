@@ -61,5 +61,66 @@ services:
       db-setup:
         condition: service_completed_successfully
 
+  postgres-test:
+    image: postgres:17
+    profiles: ["testing"]
+    environment:
+      POSTGRES_USER: qa_test_user
+      POSTGRES_PASSWORD: qa_test_password
+      POSTGRES_DB: qa_playground_test
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qa_test_user -d qa_playground_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  db-setup-test:
+    build:
+      context: .
+      target: production
+
+    profiles: ["testing"]
+    restart: "no"
+
+    environment:
+      DB_HOST: postgres-test
+      DB_PORT: 5432
+      DB_USER: qa_test_user
+      DB_PASSWORD: qa_test_password
+      DB_NAME: qa_playground_test
+      NODE_ENV: test
+
+    command: node scripts/migrate.js
+
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+
+  api-tests:
+    build:
+      context: .
+      target: development
+
+    profiles: ["testing"]
+    restart: "no"
+
+    environment:
+      DB_HOST: postgres-test
+      DB_PORT: 5432
+      DB_USER: qa_test_user
+      DB_PASSWORD: qa_test_password
+      DB_NAME: qa_playground_test
+      NODE_ENV: test
+
+    command: npm run test:docker
+
+    depends_on:
+      db-setup-test:
+        condition: service_completed_successfully
+
 volumes:
   postgres_data:
