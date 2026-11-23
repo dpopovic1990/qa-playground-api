@@ -223,6 +223,87 @@ paths:
         '500':
           description: Internal server error
 
+    get:
+      tags:
+        - Transactions
+      summary: Get transaction history
+      description: |
+        Returns a paginated collection of transactions.
+
+        Supports filtering by account ID and transaction type,
+        as well as sorting by ID, amount, or creation date.
+
+        The endpoint uses LIMIT/OFFSET pagination.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+
+        - name: accountId
+          in: query
+          schema:
+            type: string
+            pattern: '^[1-9][0-9]*$'
+
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - DEPOSIT
+              - WITHDRAWAL
+
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - id
+              - amount
+              - created_at
+            default: created_at
+
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TransactionHistoryItem'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+        '400':
+          description: Invalid query parameters
+
+        '500':
+          description: Internal server error
+
 components:
   schemas:
     Account:
@@ -276,3 +357,51 @@ components:
           type: string
           description: Account balance after the transaction
           example: '150.00'
+
+    TransactionHistoryItem:
+      type: object
+      required:
+        - id
+        - account_id
+        - type
+        - amount
+        - created_at
+      properties:
+        id:
+          type: string
+          example: '101'
+        account_id:
+          type: string
+          example: '15'
+        type:
+          type: string
+          enum:
+            - DEPOSIT
+            - WITHDRAWAL
+        amount:
+          type: string
+          example: '100.00'
+        created_at:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 150
+        totalPages:
+          type: integer
+          example: 8

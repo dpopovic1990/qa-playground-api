@@ -23,4 +23,12 @@ async function processTransaction(data) {
     }
 }
 
-module.exports = { processTransaction };
+
+async function getTransactions(options) {
+    return transactionsRepository.getTransactions(options);
+}
+
+module.exports = {
+    processTransaction,
+    getTransactions
+};
