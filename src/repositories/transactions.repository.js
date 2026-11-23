@@ -71,4 +71,69 @@ async function processTransaction({ accountId, type, amount }) {
     }
 }
 
-module.exports = { processTransaction };
+
+async function getTransactions({
+    page,
+    limit,
+    accountId,
+    type,
+    sortBy,
+    order
+}) {
+    const offset = (page - 1) * limit;
+
+    const allowedSortColumns = {
+        id: 'id',
+        amount: 'amount',
+        created_at: 'created_at'
+    };
+
+    const sortColumn = allowedSortColumns[sortBy];
+    const sortDirection = order === 'asc' ? 'ASC' : 'DESC';
+
+    const conditions = [];
+    const values = [];
+
+    if (accountId) {
+        values.push(accountId);
+        conditions.push(`account_id = $${values.length}`);
+    }
+
+    if (type) {
+        values.push(type);
+        conditions.push(`type = $${values.length}`);
+    }
+
+    const whereClause = conditions.length
+        ? `WHERE ${conditions.join(' AND ')}`
+        : '';
+
+    const countResult = await pool.query(
+        `SELECT COUNT(*) AS total
+     FROM transactions
+     ${whereClause}`,
+        values
+    );
+
+    const total = Number(countResult.rows[0].total);
+
+    const result = await pool.query(
+        `SELECT id, account_id, type, amount, created_at
+     FROM transactions
+     ${whereClause}
+     ORDER BY ${sortColumn} ${sortDirection}, id DESC
+     LIMIT $${values.length + 1}
+     OFFSET $${values.length + 2}`,
+        [...values, limit, offset]
+    );
+
+    return {
+        transactions: result.rows,
+        total
+    };
+}
+
+module.exports = {
+    processTransaction,
+    getTransactions
+};

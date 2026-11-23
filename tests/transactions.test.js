@@ -299,6 +299,47 @@ test('Concurrent deposits should preserve account balance integrity', async () =
     }
 });
 
+
+test('GET /api/v1/transactions should return paginated collection', async () => {
+    const response = await request(app)
+        .get('/api/v1/transactions?page=1&limit=10');
+
+    assert.equal(response.status, 200);
+    assert.ok(Array.isArray(response.body.data));
+    assert.equal(response.body.pagination.page, 1);
+    assert.equal(response.body.pagination.limit, 10);
+    assert.ok(response.body.data.length <= 10);
+});
+
+test('GET /api/v1/transactions should filter by account and type', async () => {
+    const response = await request(app)
+        .get(`/api/v1/transactions?accountId=${accountId}&type=DEPOSIT`);
+
+    assert.equal(response.status, 200);
+
+    for (const transaction of response.body.data) {
+        assert.equal(transaction.account_id, accountId);
+        assert.equal(transaction.type, 'DEPOSIT');
+    }
+});
+
+test('GET /api/v1/transactions should reject invalid pagination', async () => {
+    const response = await request(app)
+        .get('/api/v1/transactions?page=0&limit=200');
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.error, 'Validation Error');
+});
+
+test('GET /api/v1/transactions should reject invalid sorting', async () => {
+    const response = await request(app)
+        .get('/api/v1/transactions?sortBy=invalid_column');
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.error, 'Validation Error');
+});
+
+
 after(async () => {
     if (accountId) {
         await pool.query(
