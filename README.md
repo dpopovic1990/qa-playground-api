@@ -86,6 +86,124 @@ The application uses PostgreSQL.
 Database migrations and seed data are executed
 automatically during Docker startup.
 
+
+## Performance Test Data
+
+The QA Playground API includes a configurable performance
+data generator designed for load testing, stress testing,
+database performance analysis, and k6 experiments.
+
+### Dataset Profiles
+
+| Profile | Users | Accounts | Transactions |
+|---------|------:|---------:|-------------:|
+| Small   | 100   | 100      | 1,000        |
+| Medium  | 1,000 | 1,000    | 10,000       |
+| Large   | 10,000| 10,000   | 100,000      |
+
+Each profile generates a separate dataset.
+Multiple profiles can coexist in the same database.
+
+### Prerequisites
+
+- Running PostgreSQL container
+- Node.js 24 and npm
+- Configured local `.env` file
+- Installed project dependencies
+- Applied database migrations
+
+### Generate Performance Data
+
+```bash
+npm run data:generate:small
+npm run data:generate:medium
+npm run data:generate:large
+```
+
+The generator uses PostgreSQL set-based operations and
+bulk inserts to efficiently create large datasets.
+
+Features:
+
+- Deterministic user emails and account numbers
+- Explicit dataset ownership tracking
+- Transactional data generation
+- Protection against conflicting user and account ownership
+- Duplicate prevention for existing complete datasets
+- Execution time reporting
+- Configurable performance datasets with up to 100,000 transactions per profile
+- Optimized PostgreSQL bulk data generation
+- Controlled dataset reset with dry-run support
+- Concurrent transaction processing with row-level locking
+- Isolated Docker integration test environment
+- GitHub Actions CI pipeline
+- Interactive Swagger / OpenAPI documentation
+
+### Preview Dataset Reset
+
+Before deleting a dataset, preview the affected records:
+
+```bash
+npm run data:reset -- small
+npm run data:reset -- medium
+npm run data:reset -- large
+```
+
+The default reset mode is a dry run.
+No data is deleted without explicit confirmation.
+
+### Reset Performance Data
+
+To permanently delete a specific performance dataset:
+
+```bash
+npm run data:reset -- small --confirm
+```
+
+The reset operation removes the selected dataset's users,
+accounts, transactions, and dataset metadata within a
+single database transaction.
+
+Other dataset profiles are preserved.
+
+### Regenerate a Dataset
+
+```bash
+npm run data:reset -- small --confirm
+npm run data:generate:small
+```
+
+This provides a repeatable dataset lifecycle for
+performance testing experiments.
+
+Record IDs and creation timestamps may change after
+regeneration.
+
+### Important Limitations
+
+- Performance datasets contain synthetic transaction history.
+- Generated transactions do not update account balances.
+- Generated data is intended primarily for read-performance testing.
+- Do not use synthetic accounts for financial integrity assertions.
+- Reset deletes all transactions associated with the selected
+  performance accounts, including manually created transactions.
+- Existing accounts containing transactions are skipped during
+  generation. Reset and regenerate incomplete datasets.
+- Generation and confirmed reset operations temporarily lock
+  database tables against concurrent writes.
+- Do not generate or reset data during active performance tests.
+- These tools are intended exclusively for disposable local
+  development environments.
+
+### Performance Testing Use Cases
+
+- API response time measurement
+- Pagination performance
+- Filtering and sorting performance
+- Database index optimization
+- Large dataset query analysis
+- Load, stress, spike, and soak testing with k6
+
 ## Testing
 
 Integration tests use Node.js Test Runner and Supertest.
