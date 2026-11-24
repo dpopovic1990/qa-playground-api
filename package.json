@@ -11,7 +11,12 @@
     "db:migrate": "node scripts/migrate.js",
     "db:migrate:test": "node --env-file=.env.test scripts/migrate.js",
     "db:seed": "node scripts/seed.js",
-    "db:seed:test": "node --env-file=.env.test scripts/seed.js"
+    "db:seed:test": "node --env-file=.env.test scripts/seed.js",
+    "data:generate:small": "node scripts/generate-performance-data.js small",
+    "data:generate:medium": "node scripts/generate-performance-data.js medium",
+    "data:generate:large": "node scripts/generate-performance-data.js large",
+    "data:link": "node scripts/link-performance-datasets.js",
+    "data:reset": "node scripts/reset-performance-data.js"
   },
   "keywords": [],
   "author": "",
