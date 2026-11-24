@@ -64,20 +64,122 @@ Expected response:
 
 ## Available Endpoints
 
+### Health
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /health | Health check |
-| POST | /api/v1/users | Create user |
-| GET | /api/v1/users | List users |
+| GET | /health | Check API health |
+
+### Users
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/v1/users | Create a new user |
+| GET | /api/v1/users | List users with pagination, filtering, and sorting |
 | GET | /api/v1/users/:id | Get user by ID |
+
+### Accounts
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/v1/accounts | Create an account for an existing user |
+| GET | /api/v1/accounts | List all accounts |
+
+### Transactions
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/v1/transactions | Process a deposit or withdrawal |
+| GET | /api/v1/transactions | List transactions with OFFSET pagination, filtering, and sorting |
+| GET | /api/v1/transactions/cursor | List transactions using cursor-based pagination |
 
 ## Query Parameters
 
+### Users
+
+| Parameter | Description |
+|-----------|-------------|
+| page | Page number |
+| limit | Number of records per page |
+| name | Filter users by name |
+| sortBy | Column used for sorting |
+| order | Sorting direction (asc or desc) |
+
+Examples:
+
+```http
 GET /api/v1/users?page=1&limit=10
-
 GET /api/v1/users?name=John
-
 GET /api/v1/users?sortBy=name&order=asc
+```
+
+### Transactions — OFFSET Pagination
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| page | Page number | 1 |
+| limit | Records per page (1–100) | 20 |
+| accountId | Filter by account ID | None |
+| type | DEPOSIT or WITHDRAWAL | None |
+| sortBy | id, amount, or created_at | created_at |
+| order | asc or desc | desc |
+
+Examples:
+
+```http
+GET /api/v1/transactions?page=1&limit=20
+GET /api/v1/transactions?accountId=123
+GET /api/v1/transactions?type=DEPOSIT
+GET /api/v1/transactions?sortBy=amount&order=desc
+GET /api/v1/transactions?page=5001&limit=20
+```
+
+### Transactions — Cursor-Based Pagination
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| limit | Records per page (1–100) | 20 |
+| cursor | Base64URL cursor from the previous response | None |
+
+First page:
+
+```http
+GET /api/v1/transactions/cursor?limit=20
+```
+
+Next page:
+
+```http
+GET /api/v1/transactions/cursor?limit=20&cursor=<nextCursor>
+```
+
+The cursor-based endpoint uses a fixed sorting order:
+
+- created_at DESC
+- id DESC
+
+It does not support arbitrary page navigation,
+filtering, custom sorting, or total record counts.
+
+For performance comparisons between OFFSET and cursor-based
+pagination, see the Performance Engineering Case Studies.
+
+## API Documentation
+
+Interactive API documentation is available through Swagger UI:
+
+http://localhost:3000/api-docs/
+
+Swagger UI allows users to:
+
+- Explore available API endpoints
+- Review request and response schemas
+- Inspect supported query parameters
+- Execute API requests directly from the browser
+- Review supported HTTP status codes
+
+The OpenAPI specification is available in
+[docs/openapi.yaml](docs/openapi.yaml).
 
 ## Database
 
@@ -229,6 +331,7 @@ identification, backend optimization, and performance testing.
 | Case Study | Topic | Status |
 |------------|-------|--------|
 | [001](docs/performance/001-composite-index-optimization.md) | Composite Index Optimization | SQL analysis completed |
+| [002](docs/performance/002-keyset-pagination.md) | Keyset Pagination | SQL analysis completed |
 
 Each case study documents the problem, execution plans,
 root cause, optimization strategy, measured results,
@@ -253,13 +356,39 @@ npm test
 
 This project is under active development.
 
-Planned features:
+### Implemented Features
 
-- Swagger / OpenAPI documentation
-- Accounts and transactions
-- QA challenges
-- Performance testing examples with k6
-- Additional test automation examples
+- [x] REST API with layered backend architecture
+- [x] PostgreSQL database integration
+- [x] Automated database migrations and seeding
+- [x] Docker Compose environment
+- [x] Users API
+- [x] Accounts API
+- [x] Transactions API
+- [x] Request validation and error handling
+- [x] Database transactions and row-level locking
+- [x] Concurrency and data integrity testing
+- [x] OFFSET pagination, filtering, and sorting
+- [x] Cursor-based pagination
+- [x] Swagger / OpenAPI documentation
+- [x] Automated integration tests
+- [x] Isolated Docker test environment
+- [x] GitHub Actions CI pipeline
+- [x] Configurable performance datasets
+- [x] Optimized bulk data generation
+- [x] Controlled dataset reset
+- [x] Performance engineering case studies
+
+### Roadmap
+
+- [ ] Standalone k6 performance testing framework
+- [ ] Controlled HTTP performance benchmarks
+- [ ] Database connection pool saturation scenarios
+- [ ] Database locking performance scenarios
+- [ ] Performance regression testing
+- [ ] Dedicated QA practice challenges
+- [ ] Additional test automation examples
+- [ ] First stable public release
 
 ## License
 

@@ -304,6 +304,69 @@ paths:
         '500':
           description: Internal server error
 
+  /api/v1/transactions/cursor:
+    get:
+      tags:
+        - Transactions
+      summary: Get transactions using cursor-based pagination
+      description: |
+        Retrieves transaction history using keyset pagination.
+
+        Transactions are ordered by created_at DESC and id DESC.
+
+        The endpoint uses a PostgreSQL composite index
+        to efficiently retrieve records after a given cursor.
+
+        Unlike OFFSET pagination, this endpoint does not
+        calculate the total number of transactions.
+
+        Use nextCursor from the previous response to
+        retrieve the next page.
+
+        Cursors preserve PostgreSQL timestamp precision
+        up to six decimal places.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+
+        - name: cursor
+          in: query
+          required: false
+          description: Base64URL cursor returned by the previous page.
+          schema:
+            type: string
+            maxLength: 512
+
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - pagination
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TransactionHistoryItem'
+                  pagination:
+                    $ref: '#/components/schemas/CursorPagination'
+
+        '400':
+          description: Invalid cursor or limit
+
+        '500':
+          description: Internal server error
+
 components:
   schemas:
     Account:
@@ -405,3 +468,26 @@ components:
         totalPages:
           type: integer
           example: 8
+
+    CursorPagination:
+      type: object
+      required:
+        - limit
+        - hasNextPage
+        - nextCursor
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 20
+
+        hasNextPage:
+          type: boolean
+          example: true
+
+        nextCursor:
+          type: string
+          nullable: true
+          description: Cursor for the next page, or null at the end of history.
+          example: eyJpZCI6IjEyMDAxIn0
