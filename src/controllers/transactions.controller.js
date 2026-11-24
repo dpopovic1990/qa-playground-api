@@ -1,5 +1,5 @@
-
 const transactionsService = require('../services/transactions.service');
+const { decodeCursor } = require('../utils/cursor');
 const { validateTransaction } = require('../validators/transactions.validator');
 
 async function createTransaction(req, res, next) {
@@ -100,7 +100,50 @@ async function getTransactions(req, res, next) {
     }
 }
 
+async function getTransactionsByCursor(req, res, next) {
+    try {
+        const rawLimit = req.query.limit ?? '20';
+
+        if (
+            typeof rawLimit !== 'string' ||
+            !/^[1-9]\d{0,2}$/.test(rawLimit) ||
+            Number(rawLimit) > 100
+        ) {
+            return res.status(400).json({
+                error: 'Validation Error',
+                message: 'Limit must be between 1 and 100.'
+            });
+        }
+
+        const limit = Number(rawLimit);
+        let cursor = null;
+
+        if (req.query.cursor !== undefined) {
+            try {
+                cursor = decodeCursor(req.query.cursor);
+            } catch {
+                return res.status(400).json({
+                    error: 'Validation Error',
+                    message: 'Invalid cursor.'
+                });
+            }
+        }
+
+        const result =
+            await transactionsService.getTransactionsByCursor({
+                limit,
+                cursor
+            });
+
+        return res.status(200).json(result);
+
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     createTransaction,
-    getTransactions
+    getTransactions,
+    getTransactionsByCursor
 };

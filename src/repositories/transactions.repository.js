@@ -1,4 +1,3 @@
-
 const pool = require('../config/database');
 
 async function processTransaction({ accountId, type, amount }) {
@@ -71,7 +70,6 @@ async function processTransaction({ accountId, type, amount }) {
     }
 }
 
-
 async function getTransactions({
     page,
     limit,
@@ -133,7 +131,44 @@ async function getTransactions({
     };
 }
 
+async function getTransactionsByCursor({ limit, cursor }) {
+    const values = [];
+    let whereClause = '';
+
+    if (cursor) {
+        values.push(cursor.createdAt, cursor.id);
+
+        whereClause = `
+            WHERE (created_at, id) <
+                  ($1::timestamptz, $2::bigint)
+        `;
+    }
+
+    values.push(limit + 1);
+
+    const result = await pool.query(
+        `SELECT
+            id,
+            account_id,
+            type,
+            amount,
+            created_at,
+            TO_CHAR(
+                created_at AT TIME ZONE 'UTC',
+                'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+            ) AS cursor_created_at
+         FROM transactions
+         ${whereClause}
+         ORDER BY created_at DESC, id DESC
+         LIMIT $${values.length}`,
+        values
+    );
+
+    return result.rows;
+}
+
 module.exports = {
     processTransaction,
-    getTransactions
+    getTransactions,
+    getTransactionsByCursor
 };
