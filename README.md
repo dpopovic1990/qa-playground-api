@@ -86,7 +86,6 @@ The application uses PostgreSQL.
 Database migrations and seed data are executed
 automatically during Docker startup.
 
-
 ## Performance Test Data
 
 The QA Playground API includes a configurable performance
@@ -179,6 +178,23 @@ performance testing experiments.
 Record IDs and creation timestamps may change after
 regeneration.
 
+### Example Generation Performance
+
+The optimized bulk generator was executed in a local
+Docker-based development environment with PostgreSQL 17.
+
+| Dataset | Users | Accounts | Transactions | Duration |
+|---------|------:|---------:|-------------:|---------:|
+| Large   | 10,000 | 10,000 | 100,000 | 0.87 s |
+
+This execution generated 120,000 database records
+using PostgreSQL set-based operations.
+
+These results represent a single local execution,
+not a formal performance benchmark.
+Actual results depend on hardware, database configuration,
+existing data, and system load.
+
 ### Important Limitations
 
 - Performance datasets contain synthetic transaction history.
@@ -203,6 +219,20 @@ regeneration.
 - Database index optimization
 - Large dataset query analysis
 - Load, stress, spike, and soak testing with k6
+
+## Performance Engineering Case Studies
+
+This project includes practical performance engineering
+experiments covering database query analysis, bottleneck
+identification, backend optimization, and performance testing.
+
+| Case Study | Topic | Status |
+|------------|-------|--------|
+| [001](docs/performance/001-composite-index-optimization.md) | Composite Index Optimization | SQL analysis completed |
+
+Each case study documents the problem, execution plans,
+root cause, optimization strategy, measured results,
+trade-offs, and remaining limitations.
 
 ## Testing
 
