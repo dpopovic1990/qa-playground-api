@@ -1,8 +1,9 @@
 {
   "name": "qa-playground-api",
   "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Self-hosted REST API playground for QA engineers, test automation, database testing, and performance engineering.",
+  "main": "src/server.js",
+  "private": true,
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
@@ -18,10 +19,31 @@
     "data:link": "node scripts/link-performance-datasets.js",
     "data:reset": "node scripts/reset-performance-data.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "qa",
+    "api-testing",
+    "test-automation",
+    "performance-testing",
+    "performance-engineering",
+    "postgresql",
+    "docker",
+    "rest-api",
+    "qa-playground"
+  ],
+  "author": "Danijel Popović",
+  "license": "MIT",
   "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dpopovic1990/qa-playground-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dpopovic1990/qa-playground-api/issues"
+  },
+  "homepage": "https://github.com/dpopovic1990/qa-playground-api#readme",
+  "engines": {
+    "node": ">=24"
+  },
   "dependencies": {
     "dotenv": "^18.0.10",
     "express": "^5.3.0",
