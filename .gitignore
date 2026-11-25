@@ -4,5 +4,9 @@ node_modules/
 !.env.example
 !.env.test.example
 !.env.ci
+
 coverage/
+*.log
+
 .DS_Store
+Thumbs.db

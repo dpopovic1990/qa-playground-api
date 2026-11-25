@@ -1,19 +1,107 @@
-
 # QA Playground API
 
-An open-source, self-hosted REST API designed for QA engineers,
-test automation practice, backend learning, and performance testing.
+![CI](https://github.com/dpopovic1990/qa-playground-api/actions/workflows/ci.yml/badge.svg?branch=main)
+![Node.js](https://img.shields.io/badge/Node.js-24-339933?logo=node.js&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+A self-hosted REST API playground designed for QA engineers,
+test automation practice, backend exploration, and performance
+engineering.
+
+Build automation frameworks, experiment with testing tools,
+investigate backend behavior, and practice performance testing
+in your own controllable local environment.
+
+No dependency on external public demo APIs.
+You control the environment, the data, and the testing scenarios.
+
+> [!IMPORTANT]
+> QA Playground API is designed exclusively for local
+> testing, learning, and performance engineering experiments.
+>
+> It is not a production-ready banking application.
+> Authentication and authorization are not implemented.
+> Do not expose this application to the public internet
+> or use it with real personal or financial data.
+
+## Table of Contents
+
+- [Who Is This Project For?](#who-is-this-project-for)
+- [What Can You Practice?](#what-can-you-practice)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Quick Start](#quick-start)
+- [Available Endpoints](#available-endpoints)
+- [Query Parameters](#query-parameters)
+- [API Documentation](#api-documentation)
+- [Database](#database)
+- [Performance Test Data](#performance-test-data)
+- [Performance Engineering Case Studies](#performance-engineering-case-studies)
+- [Testing](#testing)
+- [Project Status](#project-status)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Who Is This Project For?
+
+- QA engineers learning API and database testing
+- Test automation engineers building automation frameworks
+- Performance testers experimenting with k6 or JMeter
+- Backend developers exploring PostgreSQL and API behavior
+- QA leads and mentors preparing practical learning environments
+- Anyone looking for a reusable local system under test
+
+## What Can You Practice?
+
+| Testing Area | Examples |
+|--------------|----------|
+| API Testing | REST requests, validation, status codes, error handling |
+| Test Automation | Postman, Playwright, Supertest, REST Assured |
+| Database Testing | SQL queries, constraints, relationships, data integrity |
+| Concurrency Testing | Parallel deposits and withdrawals, race conditions |
+| Performance Testing | Load, stress, spike, and soak testing |
+| Performance Engineering | Execution plans, database indexes, pagination |
+| CI/CD | Automated integration tests and quality gates |
 
 ## Features
 
-- REST API built with Node.js and Express
-- PostgreSQL database
+### REST API
+
+- Users, Accounts, and Transactions modules
+- Layered backend architecture
+- Request validation and centralized error handling
+- Filtering, sorting, and pagination
+- OFFSET and cursor-based pagination
+- Interactive Swagger / OpenAPI documentation
+
+### Database
+
+- PostgreSQL 17
+- Automated database migrations and seed data
+- Foreign keys and database constraints
+- Transactional deposit and withdrawal processing
+- Row-level locking and concurrency protection
+- Composite indexes for optimized query execution
+
+### Testing & Infrastructure
+
 - Docker Compose setup
-- Automated database migrations
-- Database seed data
-- API validation and error handling
-- Pagination, filtering, and sorting
 - Automated integration tests using Supertest
+- Isolated PostgreSQL test environment
+- Local and Docker-based test execution
+- GitHub Actions CI pipeline
+
+### Performance Engineering
+
+- Configurable Small, Medium, and Large datasets
+- Up to 100,000 synthetic transactions per dataset
+- Optimized PostgreSQL bulk data generation
+- Dataset ownership tracking
+- Controlled dataset reset with dry-run support
+- Documented performance engineering case studies
 
 ## Tech Stack
 
@@ -25,42 +113,147 @@ test automation practice, backend learning, and performance testing.
 - Supertest
 - Node.js Test Runner
 
+## Architecture
+
+The application follows a layered backend architecture
+with separation of responsibilities.
+
+```mermaid
+flowchart TD
+    A[API Client / Testing Tools] --> B[Express Routes]
+    B --> C[Controllers]
+    C --> D[Services]
+    D --> E[Repositories]
+    E --> F[(PostgreSQL)]
+    C --> G[Validation]
+    B -.-> H[Error Handling Middleware]
+    C -.-> H
+```
+
+### Architecture Overview
+
+| Layer | Responsibility |
+|-------|----------------|
+| Routes | HTTP endpoint definitions |
+| Controllers | Request handling and response formatting |
+| Services | Business logic |
+| Repositories | Database access and SQL queries |
+| Validators | Input validation |
+| Middleware | Cross-cutting concerns and error handling |
+| Configuration | Application and database configuration |
+| Database | Persistence, constraints, indexes, and transactions |
+
 ## Quick Start
+
+The easiest way to run QA Playground API is with Docker.
+
+No local Node.js or PostgreSQL installation is required
+to start the application.
 
 ### Prerequisites
 
-- Docker Desktop
-- Docker Compose
+- Docker Desktop or Docker Engine
+- Docker Compose v2 or later
+- Git
+
+Make sure Docker is running before proceeding.
 
 ### 1. Clone the repository
 
+```bash
 git clone https://github.com/dpopovic1990/qa-playground-api.git
-
 cd qa-playground-api
+```
 
 ### 2. Configure environment
 
-Copy `.env.example` to `.env`.
+Windows (PowerShell):
 
-Update the database credentials if needed.
+```powershell
+Copy-Item .env.example .env
+```
+
+Linux / macOS:
+
+```bash
+cp .env.example .env
+```
+
+Review the environment configuration if you need to
+customize database credentials or application settings.
 
 ### 3. Start the application
 
+```bash
 docker compose up -d --build
+```
 
-This command starts PostgreSQL, runs database migrations,
-inserts seed data, and starts the API.
+This command automatically:
+
+- Starts PostgreSQL
+- Waits for the database to become healthy
+- Applies database migrations
+- Inserts initial seed data
+- Starts the REST API
+
+Check the container status:
+
+```bash
+docker compose ps -a
+```
 
 ### 4. Verify the API
 
-GET http://localhost:3000/health
+Open the following URL in your browser:
+
+http://localhost:3000/health
 
 Expected response:
 
+```json
 {
   "status": "ok",
   "service": "qa-playground-api"
 }
+```
+
+### 5. Explore the API
+
+Open the interactive Swagger documentation:
+
+http://localhost:3000/api-docs/
+
+You can now explore endpoints, execute requests,
+and start building your own automated tests.
+
+### 6. Stop the application
+
+```bash
+docker compose down
+```
+
+Database data is preserved in a Docker volume
+between application restarts.
+
+### Troubleshooting
+
+Check container status:
+
+```bash
+docker compose ps -a
+```
+
+View application logs:
+
+```bash
+docker compose logs api
+```
+
+View database initialization logs:
+
+```bash
+docker compose logs db-setup
+```
 
 ## Available Endpoints
 
@@ -213,6 +406,17 @@ Multiple profiles can coexist in the same database.
 - Installed project dependencies
 - Applied database migrations
 
+Install project dependencies before running the
+performance data management scripts:
+
+```bash
+npm ci
+```
+
+Make sure the application has been started using
+the Quick Start instructions and that the local
+development database is available.
+
 ### Generate Performance Data
 
 ```bash
@@ -232,13 +436,6 @@ Features:
 - Protection against conflicting user and account ownership
 - Duplicate prevention for existing complete datasets
 - Execution time reporting
-- Configurable performance datasets with up to 100,000 transactions per profile
-- Optimized PostgreSQL bulk data generation
-- Controlled dataset reset with dry-run support
-- Concurrent transaction processing with row-level locking
-- Isolated Docker integration test environment
-- GitHub Actions CI pipeline
-- Interactive Swagger / OpenAPI documentation
 
 ### Preview Dataset Reset
 
@@ -339,18 +536,101 @@ trade-offs, and remaining limitations.
 
 ## Testing
 
-Integration tests use Node.js Test Runner and Supertest.
+The project includes automated integration tests built
+with Node.js Test Runner and Supertest.
 
-For local test execution, Node.js 24 and npm are required.
+### Test Coverage
 
-Create a `.env.test` file with the test database configuration.
-The test database must exist and have the required migrations.
+The integration test suite covers:
 
-Run:
+- Health checks and error handling
+- User creation and validation
+- Account creation and retrieval
+- Transaction processing
+- Insufficient funds handling
+- Transaction validation
+- Concurrent deposits and withdrawals
+- Database persistence and data integrity
+- Filtering, sorting, and OFFSET pagination
+- Cursor-based pagination
+- PostgreSQL timestamp precision
+- Pagination boundary conditions
 
-npm install
+### Run Tests with Docker (Recommended)
 
+Docker-based test execution does not require a local
+Node.js or PostgreSQL installation.
+
+From the project root, run:
+
+```bash
+docker compose --profile testing run --build --rm api-tests
+```
+
+The testing workflow automatically:
+
+1. Builds the development Docker image.
+2. Starts an isolated PostgreSQL test container.
+3. Applies database migrations.
+4. Executes the integration test suite.
+
+The development database is not used by Docker
+integration tests.
+
+### Run Tests Locally
+
+Prerequisites:
+
+- Node.js 24
+- npm
+- Running PostgreSQL instance
+- Configured and initialized test database
+
+Install dependencies:
+
+```bash
+npm ci
+```
+
+Configure the test environment:
+
+Windows (PowerShell):
+
+```powershell
+Copy-Item .env.test.example .env.test
+```
+
+Linux / macOS:
+
+```bash
+cp .env.test.example .env.test
+```
+
+Review the test database configuration before
+running migrations or integration tests.
+
+The test database must be named `qa_playground_test`.
+
+Apply test database migrations:
+
+```bash
+npm run db:migrate:test
+```
+
+Run integration tests:
+
+```bash
 npm test
+```
+
+### Continuous Integration
+
+GitHub Actions automatically executes Docker-based
+integration tests for pull requests targeting the
+main branch and pushes to main.
+
+The current CI status is displayed at the top
+of this README.
 
 ## Project Status
 
@@ -390,6 +670,28 @@ This project is under active development.
 - [ ] Additional test automation examples
 - [ ] First stable public release
 
+## Contributing
+
+Feedback, suggestions, bug reports, and contributions
+are welcome.
+
+If you discover an issue or have an idea for improving
+the QA Playground API, feel free to open a GitHub issue.
+
+Potential contributions include:
+
+- New API testing scenarios
+- Additional integration tests
+- Performance testing experiments
+- Database optimization examples
+- Documentation improvements
+- QA practice challenges
+
+For larger changes, please open an issue first
+to discuss the proposed improvement.
+
 ## License
 
-License to be added before the first public release.
+This project is licensed under the MIT License.
+
+See the [LICENSE](LICENSE) file for details.
